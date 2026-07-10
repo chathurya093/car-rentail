@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { dummyCarData, dummyMyBookingsData, dummyUserData } from '../assets/assets';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://car-rentail.onrender.com/api';
 
 export const AppContext = createContext();
 
