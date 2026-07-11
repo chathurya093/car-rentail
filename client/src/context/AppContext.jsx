@@ -1,8 +1,24 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from 'react';
-import { dummyCarData, dummyMyBookingsData, dummyUserData } from '../assets/assets';
+import { dummyCarData, dummyMyBookingsData, dummyUserData, assets } from '../assets/assets';
 
 const API_URL = 'https://car-rentail.onrender.com/api';
+
+// Helper to resolve asset paths returned by backend that are built/bundled in production
+const getAssetImage = (imagePath) => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('data:image')) return imagePath; // base64
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath; // external urls
+  
+  // Extract file name without extension
+  const filename = imagePath.split('/').pop();
+  const key = filename.split('.')[0];
+  
+  if (assets[key]) {
+    return assets[key];
+  }
+  return imagePath;
+};
 
 export const AppContext = createContext();
 
@@ -370,13 +386,45 @@ export const AppContextProvider = ({ children }) => {
     setCurrentRole('customer');
   };
 
+  // Map backend image paths to correct bundled assets for production build
+  const mappedCars = React.useMemo(() => {
+    return cars.map(car => ({
+      ...car,
+      image: getAssetImage(car.image)
+    }));
+  }, [cars]);
+
+  const mappedBookings = React.useMemo(() => {
+    return bookings.map(booking => ({
+      ...booking,
+      car: booking.car ? {
+        ...booking.car,
+        image: getAssetImage(booking.car.image)
+      } : null
+    }));
+  }, [bookings]);
+
+  const mappedUser = React.useMemo(() => {
+    return user ? {
+      ...user,
+      image: getAssetImage(user.image)
+    } : null;
+  }, [user]);
+
+  const mappedUsersList = React.useMemo(() => {
+    return usersList.map(u => ({
+      ...u,
+      image: getAssetImage(u.image)
+    }));
+  }, [usersList]);
+
   return (
     <AppContext.Provider value={{
-      cars,
+      cars: mappedCars,
       setCars,
-      bookings,
+      bookings: mappedBookings,
       setBookings,
-      user,
+      user: mappedUser,
       setUser,
       currentRole,
       setCurrentRole,
@@ -390,7 +438,7 @@ export const AppContextProvider = ({ children }) => {
       approveBooking,
       rejectBooking,
       toggleUserRole,
-      usersList,
+      usersList: mappedUsersList,
       loginUser,
       registerUser,
       logoutUser
